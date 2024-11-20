@@ -38,7 +38,7 @@ class CalculatorApp(ft.Container):
         self.reset()
 
         self.result = ft.Text(value="0", color=ft.colors.WHITE, size=20)
-        self.width = 350
+        self.width = 650
         self.bgcolor = ft.colors.BLACK
         self.border_radius = ft.border_radius.all(20)
         self.padding = 20
@@ -81,6 +81,15 @@ class CalculatorApp(ft.Container):
                         ActionButton(text="+", button_clicked=self.button_clicked),
                     ]
                 ),
+                                ft.Row(
+                    controls=[
+                        DigitButton(text="x^2", button_clicked=self.button_clicked),
+                        DigitButton(text="x^3", button_clicked=self.button_clicked),
+                        DigitButton(text="x^y", button_clicked=self.button_clicked),
+                        DigitButton(text="e^x", button_clicked=self.button_clicked),
+                        DigitButton(text="10^x", button_clicked=self.button_clicked),
+                    ]
+                ),
                 ft.Row(
                     controls=[
                         DigitButton(
@@ -88,14 +97,6 @@ class CalculatorApp(ft.Container):
                         ),
                         DigitButton(text=".", button_clicked=self.button_clicked),
                         ActionButton(text="=", button_clicked=self.button_clicked),
-                    ]
-                ),
-                ft.Row(
-                    controls=[
-                        DigitButton(text="x^2", button_clicked=self.button_clicked),
-                        DigitButton(text="x^3", button_clicked=self.button_clicked),
-                        DigitButton(text="x^y", button_clicked=self.button_clicked),
-                        DigitButton(text="x!", button_clicked=self.button_clicked),
                     ]
                 ),
             ]
