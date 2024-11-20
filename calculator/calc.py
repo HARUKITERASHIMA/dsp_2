@@ -1,3 +1,4 @@
+import math
 import flet as ft
 
 
@@ -32,19 +33,41 @@ class ExtraActionButton(CalcButton):
 
 
 class CalculatorApp(ft.Container):
-    # application's root control (i.e. "view") containing all other controls
     def __init__(self):
         super().__init__()
         self.reset()
 
         self.result = ft.Text(value="0", color=ft.colors.WHITE, size=20)
-        self.width = 650
+        self.width = 350
         self.bgcolor = ft.colors.BLACK
         self.border_radius = ft.border_radius.all(20)
         self.padding = 20
         self.content = ft.Column(
             controls=[
                 ft.Row(controls=[self.result], alignment="end"),
+                ft.Row(
+                    controls=[
+                        ExtraActionButton(
+                            text="x^2", button_clicked=self.button_clicked
+                        ),
+                        ExtraActionButton(
+                            text="x^3", button_clicked=self.button_clicked
+                        ),
+                        ExtraActionButton(
+                            text="x^y", button_clicked=self.button_clicked
+                        ),
+                    ]
+                ),
+                ft.Row(
+                    controls=[
+                        ExtraActionButton(
+                            text="cosx", button_clicked=self.button_clicked
+                        ),
+                        ExtraActionButton(
+                            text="sinx", button_clicked=self.button_clicked
+                        ),
+                    ],
+                ),                
                 ft.Row(
                     controls=[
                         ExtraActionButton(
@@ -81,15 +104,6 @@ class CalculatorApp(ft.Container):
                         ActionButton(text="+", button_clicked=self.button_clicked),
                     ]
                 ),
-                                ft.Row(
-                    controls=[
-                        DigitButton(text="x^2", button_clicked=self.button_clicked),
-                        DigitButton(text="x^3", button_clicked=self.button_clicked),
-                        DigitButton(text="x^y", button_clicked=self.button_clicked),
-                        DigitButton(text="e^x", button_clicked=self.button_clicked),
-                        DigitButton(text="10^x", button_clicked=self.button_clicked),
-                    ]
-                ),
                 ft.Row(
                     controls=[
                         DigitButton(
@@ -110,66 +124,96 @@ class CalculatorApp(ft.Container):
             self.reset()
 
         elif data in ("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "."):
-            if self.result.value == "0" or self.new_operand == True:
+            if self.result.value == "0" or self.new_operand:
                 self.result.value = data
                 self.new_operand = False
             else:
-                self.result.value = self.result.value + data
+                self.result.value += data
 
         elif data in ("+", "-", "*", "/"):
-            self.result.value = self.calculate(
-                self.operand1, float(self.result.value), self.operator
+            self.result.value = self.format_number(
+                self.calculate(self.operand1, float(self.result.value), self.operator)
             )
             self.operator = data
-            if self.result.value == "Error":
-                self.operand1 = "0"
-            else:
-                self.operand1 = float(self.result.value)
+            self.operand1 = float(self.result.value)
             self.new_operand = True
 
-        elif data in ("="):
-            self.result.value = self.calculate(
-                self.operand1, float(self.result.value), self.operator
+        elif data == "=":
+            self.result.value = self.format_number(
+                self.calculate(self.operand1, float(self.result.value), self.operator)
             )
             self.reset()
 
-        elif data in ("%"):
-            self.result.value = float(self.result.value) / 100
+        elif data == "%":
+            self.result.value = self.format_number(float(self.result.value) / 100)
             self.reset()
 
-        elif data in ("+/-"):
-            if float(self.result.value) > 0:
-                self.result.value = "-" + str(self.result.value)
+        elif data == "+/-":
+            self.result.value = self.format_number(-float(self.result.value))
 
-            elif float(self.result.value) < 0:
-                self.result.value = str(
-                    self.format_number(abs(float(self.result.value)))
+        elif data == "x^2":
+            self.result.value = self.format_number(float(self.result.value) ** 2)
+            self.reset()
+
+        elif data == "x^3":
+            self.result.value = self.format_number(float(self.result.value) ** 3)
+            self.reset()
+
+        elif data == "x^y":
+            self.ask_exponent()
+
+        elif data == "cosx":
+            self.result.value = self.format_number(math.cos(math.radians(float(self.result.value))))
+            self.reset()
+
+        elif data == "sinx":
+            self.result.value = self.format_number(math.sin(math.radians(float(self.result.value))))
+            self.reset()
+
+        self.update()
+
+    def ask_exponent(self):
+        def set_exponent(e):
+            try:
+                exponent = float(input_field.value)
+                self.result.value = self.format_number(
+                    float(self.result.value) ** exponent
                 )
+                dialog.open = False
+                self.update()
+            except ValueError:
+                self.result.value = "Error"
+                dialog.open = False
+                self.update()
 
+        input_field = ft.TextField(label="Enter exponent:")
+        dialog = ft.AlertDialog(
+            title=ft.Text("x^y Calculation"),
+            content=input_field,
+            actions=[
+                ft.TextButton("OK", on_click=set_exponent),
+                ft.TextButton("Cancel", on_click=lambda e: dialog.dismiss()),
+            ],
+        )
+        self.page.dialog = dialog
+        dialog.open = True
         self.update()
 
     def format_number(self, num):
         if num % 1 == 0:
-            return int(num)
+            return str(int(num))
         else:
-            return num
+            return str(num)
 
     def calculate(self, operand1, operand2, operator):
-
         if operator == "+":
-            return self.format_number(operand1 + operand2)
-
+            return operand1 + operand2
         elif operator == "-":
-            return self.format_number(operand1 - operand2)
-
+            return operand1 - operand2
         elif operator == "*":
-            return self.format_number(operand1 * operand2)
-
+            return operand1 * operand2
         elif operator == "/":
-            if operand2 == 0:
-                return "Error"
-            else:
-                return self.format_number(operand1 / operand2)
+            return "Error" if operand2 == 0 else operand1 / operand2
 
     def reset(self):
         self.operator = "+"
@@ -179,10 +223,7 @@ class CalculatorApp(ft.Container):
 
 def main(page: ft.Page):
     page.title = "Calc App"
-    # create application instance
     calc = CalculatorApp()
-
-    # add application's root control to the page
     page.add(calc)
 
 
